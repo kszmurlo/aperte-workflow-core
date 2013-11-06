@@ -1,0 +1,43 @@
+<#assign null = "null">
+
+<#assign creator = process.getCreatorLogin()!"">
+<#assign processLogs = process.getProcessLogs()!"">
+ 
+<table width="100%">
+	<tr  style="background-color: lightgrey;">
+		<th>
+			Użytkownik
+		</th>
+		<th>
+			Data
+		</th>
+		<th>
+			Krok procesu
+		</th>
+		<th>
+			Akcja
+		</th>
+	</tr>
+	<#list processLogs as processLog>
+	<#assign state = processLog.getState()!"">
+		<tr style="background-color: white;">
+			<td>
+				${processLog.userLogin}
+			</td>
+			<td>
+				${processLog.entryDate?string("yyyy-MM-dd HH:mm")}
+			</td>
+			<td>
+				<#if state != "">
+					${state.descrition}
+				<#else>
+					${state}
+				</#if>
+			</td>
+			<td>
+				<#assign message = messageSource.getMessage(processLog.getEventI18NKey())!"">
+				${message}
+			</td>
+		</tr>
+	</#list>
+</table>

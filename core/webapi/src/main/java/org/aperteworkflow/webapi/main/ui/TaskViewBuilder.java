@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import pl.net.bluesoft.rnd.processtool.ProcessToolContext;
 import pl.net.bluesoft.rnd.processtool.bpm.ProcessToolBpmSession;
+import pl.net.bluesoft.rnd.processtool.di.ObjectFactory;
 import pl.net.bluesoft.rnd.processtool.model.BpmTask;
 import pl.net.bluesoft.rnd.processtool.model.UserData;
 import pl.net.bluesoft.rnd.processtool.model.config.ProcessStateAction;
@@ -14,8 +15,10 @@ import pl.net.bluesoft.rnd.processtool.model.config.ProcessStateWidget;
 import pl.net.bluesoft.rnd.processtool.model.config.ProcessStateWidgetAttribute;
 import pl.net.bluesoft.rnd.processtool.model.config.ProcessStateWidgetPermission;
 import pl.net.bluesoft.rnd.processtool.plugins.ProcessToolRegistry;
+import pl.net.bluesoft.rnd.processtool.usersource.IUserSource;
 import pl.net.bluesoft.rnd.processtool.web.domain.IHtmlTemplateProvider;
 import pl.net.bluesoft.rnd.util.i18n.I18NSource;
+import pl.net.bluesoft.util.lang.Maps;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -231,6 +234,7 @@ public class TaskViewBuilder
 		}
 		else if(widgetTemplateBody != null)
 		{
+			IUserSource userSource = ObjectFactory.create(IUserSource.class);
 //            ProcessHtmlWidget htmlWidget = processToolRegistry.getHtmlWidget(aliasName);
             Map<String, Object> viewData = new HashMap<String, Object>();
 			viewData.put(IHtmlTemplateProvider.PROCESS_PARAMTER, task.getProcessInstance());
@@ -242,7 +246,8 @@ public class TaskViewBuilder
 			viewData.put(IHtmlTemplateProvider.WIDGET_ID_PARAMETER, widget.getId().toString());
             viewData.put(IHtmlTemplateProvider.DICTIONARIES_DAO_PARAMETER, ctx.getProcessDictionaryDAO());
             viewData.put(IHtmlTemplateProvider.BPM_SESSION_PARAMETER, bpmSession);
-
+            viewData.put(IHtmlTemplateProvider.ALL_USERS_MAP, userSource.getAllUsers());
+            
             for(ProcessStateWidgetAttribute attribute: widget.getAttributes())
                 viewData.put(attribute.getName(), attribute.getValue());
 

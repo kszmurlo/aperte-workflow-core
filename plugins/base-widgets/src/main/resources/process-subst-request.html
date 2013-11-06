@@ -1,0 +1,147 @@
+<#assign null = "null">
+
+<#assign userRoles = user.getRoles()!"">
+<#assign userSubstituteVal = process.getSimpleAttributeValue("userSubstitute")!"">
+<#assign dateFromVal = process.getSimpleAttributeValue("dateFrom")!"">
+<#assign dateToVal = process.getSimpleAttributeValue("dateTo")!"">
+<#assign hasPerm = "false">
+<#assign hasPermView = "false">
+
+<#if privileges?seq_contains("EDIT")>
+	<#assign hasPerm = "true">
+</#if>
+
+<#if privileges?seq_contains("VIEW")>
+	<#assign hasPermView = "true">
+</#if>
+
+<table class="userSubstTable">
+	<tr>
+		<td align="right">
+			${messageSource.getMessage("usersubstitution.substituted.user")} &nbsp
+		</td>
+		<td>
+			${user.realName} 
+		</td>
+	</tr>
+	<tr>
+		<td  align="right">
+			${messageSource.getMessage("usersubstitution.substituting.user")} &nbsp
+		</td>
+		<td>
+			<select id="userSubstitute" >
+						<option selected="true"></option>
+				<#list allUsers as user_item>
+					<#if user.getLogin() != user_item.login>
+						<option value="${user_item.login}">${user_item.realName} &nbsp (${user_item.login})</option>
+					</#if>
+				</#list>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td  align="right">
+			${messageSource.getMessage("usersubstitution.date.from")} &nbsp
+		</td>
+		<td>
+			<input type="text" class="date" id="dateFrom" name="date" value="${dateFromVal}">
+		</td>
+	</tr>
+	<tr>
+		<td  align="right">
+			${messageSource.getMessage("usersubstitution.date.to")} &nbsp
+		</td>
+		<td>
+			<input type="text" class="date" id="dateTo" name="date"  value="${dateToVal}">
+		</td>
+	</tr>
+</table>
+
+<script type="text/javascript">
+
+	$(document).ready(function()
+	{
+		$('.date').datetimepicker({
+			pickTime: false,
+			format: 'yyyy-mm-dd'
+		});
+		
+		if('${userSubstituteVal}' != ""){
+			$('#userSubstitute').val('${userSubstituteVal}');
+		}
+		
+		if ('${hasPerm}' == "false") {
+			$('#userSubstitute').prop("disabled", true);
+			$('#dateTo').prop("disabled", true);
+			$('#dateFrom').prop("disabled", true);
+		}
+		
+		if ('${hasPermView}' == "false") {
+			$('.userSubstTable').hide();
+		}
+		
+		$('#area-comment-warning').hide();
+		
+		console.log( "textarea: ${widgetId}"); 
+		
+		var widget = new Widget('${widgetName}', '${widgetId}', '${task.internalTaskId}');
+		widget.getData = function() {return getRequestCommentData();};
+		widget.validate = function() {return validateRequestComment();};
+		
+		widgets.push(widget);
+	});
+	
+	function validateRequestComment()
+	{
+		var errors = [];
+		var re = /^(\d{4})-(\d{1,2})-(\d{1,2})/; 
+		
+		if($('#dateFrom').val() != '' && !$('#dateFrom').val().match(re)) 
+			{ 
+				//alert("Invalid date format: " + form.startdate.value); 
+				
+				errors.push('${messageSource.getMessage("usersubstitutionrequest.widget.dateFormat.warning")}'); 
+			}
+			
+		if($('#dateTo').val() != '' && !$('#dateTo').val().match(re)) 
+			{ 
+				//alert("Invalid date format: " + form.startdate.value); 
+			
+				errors.push('${messageSource.getMessage("usersubstitutionrequest.widget.dateFormat.warning")}'); 
+			}
+			
+		if(!$('#userSubstitute').val() && !$('#userSubstitute').is(':disabled'))
+			{	
+				$('#userSubstitute').show();
+				errors.push('${messageSource.getMessage("usersubstitutionrequest.widget.usersubstitute.warning")}');
+			}
+		
+		if(!$('#dateFrom').val() && !$('#dateFrom').is(':disabled'))
+			{	
+				$('#dateFrom').show();
+				errors.push('${messageSource.getMessage("usersubstitutionrequest.widget.datefrom.warning")}');
+			}
+		
+		if(!$('#dateTo').val() && !$('#dateTo').is(':disabled'))
+			{	
+				$('#dateTo').show();
+				errors.push('${messageSource.getMessage("usersubstitutionrequest.widget.dateto.warning")}');
+			}
+		
+		return errors;
+	}
+	
+	function getRequestCommentData()
+	{
+		var dateFrom = $('#dateFrom').val();
+		var dateTo = $('#dateTo').val();
+		var userSubstitute = $('#userSubstitute').val();
+		
+		var data = {
+					"userSubstitute" : userSubstitute,
+					"dateFrom" : dateFrom,
+					"dateTo" : dateTo
+					};
+		return data;
+	}
+</script>
